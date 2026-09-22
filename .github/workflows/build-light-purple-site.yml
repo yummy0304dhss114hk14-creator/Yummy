@@ -1,0 +1,53 @@
+name: Build light-purple website
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the original website source
+        run: git clone --depth=1 https://github.com/kgipj/kgipj.github.io.git site
+
+      - name: Apply the light-purple palette
+        working-directory: site
+        run: |
+          sed -i 's|baseURL = ".*"|baseURL = "https://yummy0304dhss114hk14-creator.github.io/Yummy/"|' config.toml
+          sed -i \
+            -e 's/#2563eb/#a78bfa/g' \
+            -e 's/#0782bf/#c4b5fd/g' \
+            -e 's/dodgerblue/#a78bfa/g' \
+            -e 's/#1d4ed8/#8b5cf6/g' \
+            -e 's/#7dd3fc/#ddd6fe/g' \
+            themes/archie/static/css/main.css \
+            themes/archie/layouts/partials/header.html
+          sed -i \
+            -e 's/background: blue/background: #a78bfa/g' \
+            -e 's/#89000e/#8b5cf6/g' \
+            -e 's/#81d0ef/#ddd6fe/g' \
+            -e 's/#5a9bcf/#c4b5fd/g' \
+            themes/archie/static/css/dark.css
+          sed -i 's/#2563eb/#a78bfa/g' static/site.webmanifest
+
+      - name: Set up Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: "0.134.3"
+          extended: true
+
+      - name: Build website
+        working-directory: site
+        run: hugo --gc --minify --cleanDestinationDir
+
+      - name: Publish website
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./site/public
